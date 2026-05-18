@@ -71,11 +71,16 @@ function renderDashboard() {
                 historyHTML += `
                     <li class="history-item ${item.type}">
                         <span class="history-reason">${item.reason}</span>
-                        <span class="history-amt">${item.type === 'plus' ? '+' : '-'}$${item.amount.toFixed(2)}</span>
+                        <span class="history-amt">${item.type === 'plus' ? '+' : '-'}$${Math.abs(item.amount).toFixed(2)}</span>
                     </li>
                 `;
             });
         }
+
+        // Format balance string cleanly, handling negative signs correctly
+        const formattedBalance = person.balance < 0 
+            ? `-$${Math.abs(person.balance).toFixed(2)}` 
+            : `$${person.balance.toFixed(2)}`;
 
         card.innerHTML = `
             <div class="card-header">
@@ -84,7 +89,7 @@ function renderDashboard() {
             </div>
             <div class="balance-display">
                 <span>Current Balance</span>
-                <div class="amount">$${person.balance.toFixed(2)}</div>
+                <div class="amount" style="color: ${person.balance < 0 ? 'var(--danger)' : 'var(--primary-blue)'}">${formattedBalance}</div>
             </div>
             <div class="card-actions">
                 <button class="btn btn-primary" onclick="openTransactionModal('${person.id}', 'plus')">+ Add</button>
@@ -160,7 +165,7 @@ submitTxBtn.addEventListener('click', () => {
     const personIndex = peopleData.findIndex(p => p.id === id);
     if (personIndex === -1) return;
 
-    // Check errors with clean custom popups
+    // Validation checks
     if (isNaN(amount) || amount <= 0) {
         showAlert("Invalid Amount", "Please input a numeric amount higher than 0.00.");
         return;
@@ -174,14 +179,10 @@ submitTxBtn.addEventListener('click', () => {
         return;
     }
 
-    // Apply arithmetic updates safely
+    // Apply arithmetic updates (allowing balances to go below 0)
     if (type === 'plus') {
         peopleData[personIndex].balance += amount;
     } else {
-        if (peopleData[personIndex].balance - amount < 0) {
-            showAlert("Balance Limit Error", "User balances cannot drop below $0.00.");
-            return;
-        }
         peopleData[personIndex].balance -= amount;
     }
 
