@@ -1,126 +1,85 @@
-const VERSION = "1.1.6";
-const ADMIN_PASSWORD = "admin123";
+function animateValue(el, start, end){
 
-let peopleData = JSON.parse(localStorage.getItem("creditData")) || [];
-let settings = JSON.parse(localStorage.getItem("settings")) || {
-    dark: true
-};
+    let current = start;
+    const steps = 20;
+    const diff = (end - start) / steps;
 
-let deleteTarget = null;
+    let i = 0;
 
-const peopleContainer = document.getElementById("peopleContainer");
-const versionText = document.getElementById("versionText");
+    const interval = setInterval(() => {
 
-versionText.innerText = VERSION;
+        current += diff;
+        i++;
 
-/* ---------------- SAVE ---------------- */
+        if(i >= steps){
+            current = end;
+            clearInterval(interval);
+        }
 
-function save(){
-    localStorage.setItem("creditData", JSON.stringify(peopleData));
-    localStorage.setItem("settings", JSON.stringify(settings));
-    render();
+        el.innerText =
+            current < 0
+                ? "-$" + Math.abs(current).toFixed(2)
+                : "$" + current.toFixed(2);
+
+    }, 15);
 }
 
-/* ---------------- MODALS FIX ---------------- */
-
-function closeAllModals(){
-    document.querySelectorAll(".modal")
-        .forEach(m => m.classList.remove("active"));
-}
-
-/* ---------------- THEME FIX ---------------- */
-
-document.getElementById("themeBtn").onclick = () => {
-    settings.dark = !settings.dark;
-    document.body.className = settings.dark ? "dark" : "light";
-    save();
-};
-
-/* apply theme on load */
-document.body.className = settings.dark ? "dark" : "light";
-
-/* ---------------- AVATAR UPLOAD ---------------- */
-
-window.uploadAvatar = function(id){
-
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-
-        reader.onload = () => {
-            const person = peopleData.find(p => p.id === id);
-            person.avatar = reader.result;
-            save();
-        };
-
-        reader.readAsDataURL(file);
-    };
-
-    input.click();
-};
-
-/* ---------------- RENDER ---------------- */
-
+/* RENDER */
 function render(){
 
     peopleContainer.innerHTML = "";
 
     peopleData.forEach(p => {
 
-        const avatarHTML = p.avatar
-            ? `<img src="${p.avatar}">`
-            : p.name[0].toUpperCase();
-
         const card = document.createElement("div");
         card.className = "card";
 
+        const avatar = p.avatar
+            ? `<img src="${p.avatar}">`
+            : p.name[0].toUpperCase();
+
+        const balance =
+            p.balance < 0
+                ? "-$" + Math.abs(p.balance).toFixed(2)
+                : "$" + p.balance.toFixed(2);
+
         card.innerHTML = `
             <div style="display:flex;gap:10px;align-items:center">
-
-                <div class="avatar"
-                    onclick="uploadAvatar('${p.id}')">
-                    ${avatarHTML}
+                <div class="avatar" onclick="uploadAvatar('${p.id}')">
+                    ${avatar}
                 </div>
-
                 <h3>${p.name}</h3>
-
             </div>
 
-            <p>Balance: ${p.balance < 0 ? "-$" + Math.abs(p.balance) : "$" + p.balance}</p>
+            <div class="balance-pop" id="bal-${p.id}">
+                ${balance}
+            </div>
 
-            <button onclick="openTx('${p.id}','plus')">Add</button>
-            <button onclick="openTx('${p.id}','minus')">Deduct</button>
+            <div class="card-actions">
 
-            <button onclick="undo('${p.id}')">Undo</button>
-            <button onclick="redo('${p.id}')">Redo</button>
+                <button class="primary"
+                onclick="openTx('${p.id}','plus')">
+                    + Add
+                </button>
+
+                <button class="secondary"
+                onclick="openTx('${p.id}','minus')">
+                    - Deduct
+                </button>
+
+                <button class="secondary"
+                onclick="undo('${p.id}')">
+                    Undo
+                </button>
+
+                <button class="secondary"
+                onclick="redo('${p.id}')">
+                    Redo
+                </button>
+
+            </div>
         `;
 
         peopleContainer.appendChild(card);
     });
 }
-
-/* ---------------- CHANGELOG ---------------- */
-
-window.openChangelog = function(){
-
-    document.getElementById("changelogModal")
-        .classList.add("active");
-
-    document.getElementById("changelogText").innerHTML = `
-        <h3>v1.1.6</h3>
-        <ul>
-            <li>Fixed cancel buttons</li>
-            <li>Fixed theme toggle</li>
-            <li>Added avatar upload</li>
-            <li>Added changelog system</li>
-        </ul>
-    `;
-};
-
-/* ---------------- INIT ---------------- */
-
-render();
