@@ -83,3 +83,35 @@ function render(){
         peopleContainer.appendChild(card);
     });
 }
+const VERSION = "1.1.8";
+
+const UPDATE_LOG = [
+    {
+        version: "1.1.0",
+        changes: ["Initial system created"]
+    },
+    {
+        version: "1.1.1",
+        changes: ["Search", "Sort", "Dark mode", "Debt UI"]
+    },
+    {
+        version: "1.1.3",
+        changes: ["Undo system", "Redo base", "Profile avatars"]
+    },
+    {
+        version: "1.1.5",
+        changes: ["Multi undo", "Edit transactions", "Delete transactions"]
+    },
+    {
+        version: "1.1.6",
+        changes: ["Fixed modals", "Theme fix", "Avatar upload", "Changelog"]
+    },
+    {
+        version: "1.1.7",
+        changes: ["Button redesign", "Smooth animations", "UI polish"]
+    },
+    {
+        version: "1.1.8",
+        changes: ["Stability fixes", "Full update log system", "Render rewrite"]
+    }
+];
