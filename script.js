@@ -1,24 +1,23 @@
-const VERSION = "1.1.4";
+const VERSION = "1.1.5";
 const ADMIN_PASSWORD = "admin123";
 
 let peopleData = JSON.parse(localStorage.getItem("creditData")) || [];
 
-let deleteTargetId = null;
-let undoStack = {}; // stores last transaction per user
+let undoStack = {};
+let redoStack = {};
 
-// Elements
+let editTarget = null;
+
+// ELEMENTS
 const peopleContainer = document.getElementById("peopleContainer");
 
 const addPersonBtn = document.getElementById("addPersonBtn");
 const personModal = document.getElementById("personModal");
-const closeModal = document.getElementById("closeModal");
 const savePersonBtn = document.getElementById("savePersonBtn");
 const newPersonName = document.getElementById("newPersonName");
 
 const txModal = document.getElementById("txModal");
-const closeTxModal = document.getElementById("closeTxModal");
 const submitTxBtn = document.getElementById("submitTxBtn");
-
 const txPersonId = document.getElementById("txPersonId");
 const txType = document.getElementById("txType");
 const txAmount = document.getElementById("txAmount");
@@ -26,133 +25,98 @@ const txReason = document.getElementById("txReason");
 const txPassword = document.getElementById("txPassword");
 const txModalTitle = document.getElementById("txModalTitle");
 
-const confirmModal = document.getElementById("confirmModal");
-const confirmMessage = document.getElementById("confirmMessage");
-const confirmCancelBtn = document.getElementById("confirmCancelBtn");
-const confirmOkBtn = document.getElementById("confirmOkBtn");
-
-const searchInput = document.getElementById("searchInput");
-const sortSelect = document.getElementById("sortSelect");
-
 const versionText = document.getElementById("versionText");
 versionText.innerText = VERSION;
 
 // SAVE
 function saveData() {
     localStorage.setItem("creditData", JSON.stringify(peopleData));
-    renderDashboard();
+    render();
 }
 
-// ALERT
-function showAlert(msg) {
-    alert(msg);
+// AVATAR
+function getAvatar(name) {
+    const colors = ["#2563eb","#ef4444","#22c55e","#f59e0b","#a855f7"];
+    const color = colors[name.length % colors.length];
+    return { letter: name[0].toUpperCase(), color };
+}
+
+// BALANCE ANIMATION
+function animateBalance(el, start, end) {
+    let cur = start;
+    const step = (end - start) / 20;
+
+    const interval = setInterval(() => {
+        cur += step;
+        if ((step > 0 && cur >= end) || (step < 0 && cur <= end)) {
+            cur = end;
+            clearInterval(interval);
+        }
+
+        el.innerText =
+            cur < 0
+                ? `-$${Math.abs(cur).toFixed(2)}`
+                : `$${cur.toFixed(2)}`;
+    }, 15);
 }
 
 // RENDER
-function renderDashboard() {
+function render() {
     peopleContainer.innerHTML = "";
 
-    let filtered = [...peopleData];
-
-    const search = searchInput.value.toLowerCase();
-    if (search) {
-        filtered = filtered.filter(p =>
-            p.name.toLowerCase().includes(search)
-        );
-    }
-
-    if (sortSelect.value === "highest") {
-        filtered.sort((a, b) => b.balance - a.balance);
-    }
-
-    if (sortSelect.value === "lowest") {
-        filtered.sort((a, b) => a.balance - b.balance);
-    }
-
-    if (sortSelect.value === "alphabetical") {
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    filtered.forEach(person => {
+    peopleData.forEach(person => {
 
         const card = document.createElement("div");
         card.className = "card";
 
+        const avatar = getAvatar(person.name);
+
         let historyHTML = "";
 
-        if (!person.history.length) {
-            historyHTML = `<li class="history-item">No history yet</li>`;
-        } else {
-            [...person.history]
-                .slice(-5)
-                .reverse()
-                .forEach(item => {
+        person.history.slice(-5).reverse().forEach((t, i) => {
+            historyHTML += `
+                <li class="history-item ${t.type}">
+                    <span>${t.reason}</span>
+                    <span>$${t.amount.toFixed(2)}</span>
 
-                    historyHTML += `
-                        <li class="history-item ${item.type}">
-                            <span>${item.reason}</span>
-                            <span>
-                                ${item.type === "plus" ? "+" : "-"}
-                                $${item.amount.toFixed(2)}
-                            </span>
-                        </li>
-                    `;
-                });
-        }
+                    <button onclick="editTx('${person.id}',${person.history.length-1-i})">✏</button>
+                    <button onclick="deleteTx('${person.id}',${person.history.length-1-i})">🗑</button>
+                </li>
+            `;
+        });
 
-        const formatted =
+        const balance =
             person.balance < 0
                 ? `-$${Math.abs(person.balance).toFixed(2)}`
                 : `$${person.balance.toFixed(2)}`;
 
-        const canUndo =
-            undoStack[person.id] !== undefined;
-
         card.innerHTML = `
             <div class="card-header">
-                <h2>${person.name}</h2>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <div class="avatar" style="background:${avatar.color}">
+                        ${avatar.letter}
+                    </div>
+                    <h2>${person.name}</h2>
+                </div>
 
-                <button class="btn btn-danger"
-                onclick="promptDeletePerson('${person.id}')">
-                    Delete
-                </button>
+                <button onclick="promptDelete('${person.id}')">Delete</button>
             </div>
 
             <div class="balance-display">
-                <span>Balance</span>
-
-                <div class="amount"
-                style="color:${person.balance < 0 ? '#ef4444' : '#60a5fa'}">
-                    ${formatted}
+                <div class="amount" data-id="${person.id}">
+                    ${balance}
                 </div>
-
-                ${person.balance < 0 ? `<div class="debt-badge">IN DEBT</div>` : ""}
             </div>
 
             <div class="card-actions">
+                <button onclick="openTx('${person.id}','plus')">+ Add</button>
+                <button onclick="openTx('${person.id}','minus')">- Deduct</button>
 
-                <button class="btn btn-primary"
-                onclick="openTransactionModal('${person.id}','plus')">
-                    + Add
-                </button>
-
-                <button class="btn btn-secondary"
-                onclick="openTransactionModal('${person.id}','minus')">
-                    - Deduct
-                </button>
-
-                <button class="btn btn-warning"
-                onclick="undoTransaction('${person.id}')"
-                ${!canUndo ? "disabled" : ""}>
-                    Undo
-                </button>
-
+                <button onclick="undo('${person.id}')">Undo</button>
+                <button onclick="redo('${person.id}')">Redo</button>
             </div>
 
-            <div class="history-section">
-                <h4>Recent Activity</h4>
-                <ul class="history-list">${historyHTML}</ul>
-            </div>
+            <ul>${historyHTML}</ul>
         `;
 
         peopleContainer.appendChild(card);
@@ -160,19 +124,12 @@ function renderDashboard() {
 }
 
 // ADD PERSON
-addPersonBtn.onclick = () => {
-    personModal.classList.add("active");
-};
-
-closeModal.onclick = () => {
-    personModal.classList.remove("active");
-};
+addPersonBtn.onclick = () => personModal.classList.add("active");
 
 savePersonBtn.onclick = () => {
 
     const name = newPersonName.value.trim();
-
-    if (!name) return showAlert("Enter name");
+    if (!name) return;
 
     peopleData.push({
         id: "p_" + Date.now(),
@@ -181,36 +138,27 @@ savePersonBtn.onclick = () => {
         history: []
     });
 
-    newPersonName.value = "";
-    personModal.classList.remove("active");
-
     saveData();
+    personModal.classList.remove("active");
 };
 
 // OPEN TX
-window.openTransactionModal = function (id, type) {
-
-    const person = peopleData.find(p => p.id === id);
-    if (!person) return;
+window.openTx = (id, type) => {
+    const p = peopleData.find(x => x.id === id);
 
     txPersonId.value = id;
     txType.value = type;
 
     txModalTitle.innerText =
         type === "plus"
-            ? `Add Credits to ${person.name}`
-            : `Deduct Credits from ${person.name}`;
+            ? `Add to ${p.name}`
+            : `Deduct from ${p.name}`;
 
     txAmount.value = "";
     txReason.value = "";
     txPassword.value = "";
 
     txModal.classList.add("active");
-};
-
-// CLOSE TX
-closeTxModal.onclick = () => {
-    txModal.classList.remove("active");
 };
 
 // SUBMIT TX
@@ -220,92 +168,117 @@ submitTxBtn.onclick = () => {
     const type = txType.value;
 
     const amount = parseFloat(txAmount.value);
-    const reason = txReason.value.trim();
-    const password = txPassword.value;
+    const reason = txReason.value;
+    const pass = txPassword.value;
 
-    if (!amount || amount <= 0) return showAlert("Invalid amount");
-    if (!reason) return showAlert("Reason required");
-    if (password !== ADMIN_PASSWORD) return showAlert("Wrong password");
+    if (!amount || amount <= 0) return;
+    if (!reason) return;
+    if (pass !== ADMIN_PASSWORD) return;
 
     const person = peopleData.find(p => p.id === id);
-    if (!person) return;
 
-    // SAVE FOR UNDO
-    undoStack[id] = {
-        prevBalance: person.balance,
-        prevHistoryLength: person.history.length
-    };
+    // clear redo stack on new action
+    redoStack[id] = [];
 
-    if (type === "plus") {
-        person.balance += amount;
-    } else {
-        person.balance -= amount;
-    }
+    undoStack[id] = undoStack[id] || [];
+    undoStack[id].push({
+        balanceBefore: person.balance,
+        tx: null
+    });
+
+    if (type === "plus") person.balance += amount;
+    else person.balance -= amount;
 
     person.history.push({
         type,
         amount,
-        reason,
-        date: new Date().toLocaleString()
+        reason
     });
 
-    txModal.classList.remove("active");
     saveData();
+    txModal.classList.remove("active");
+
+    const el = document.querySelector(`[data-id="${id}"]`);
+    animateBalance(el, person.balance - (type==="plus"?amount:-amount), person.balance);
 };
 
 // UNDO
-window.undoTransaction = function (id) {
+window.undo = (id) => {
 
     const person = peopleData.find(p => p.id === id);
-    if (!person) return;
+    const stack = undoStack[id];
 
-    const undo = undoStack[id];
-    if (!undo) return;
+    if (!stack || !stack.length) return;
 
-    person.balance = undo.prevBalance;
-    person.history.length = undo.prevHistoryLength;
+    const last = stack.pop();
 
-    delete undoStack[id];
+    redoStack[id] = redoStack[id] || [];
+    redoStack[id].push({
+        balanceBefore: person.balance
+    });
+
+    person.balance = last.balanceBefore;
+
+    person.history.pop();
 
     saveData();
 };
 
-// DELETE
-window.promptDeletePerson = function (id) {
+// REDO
+window.redo = (id) => {
 
     const person = peopleData.find(p => p.id === id);
-    if (!person) return;
+    const stack = redoStack[id];
 
-    deleteTargetId = id;
+    if (!stack || !stack.length) return;
 
-    confirmMessage.innerText = `Delete ${person.name}?`;
+    const redo = stack.pop();
 
-    confirmModal.classList.add("active");
-};
-
-confirmCancelBtn.onclick = () => {
-    confirmModal.classList.remove("active");
-};
-
-confirmOkBtn.onclick = () => {
-
-    peopleData = peopleData.filter(p => p.id !== deleteTargetId);
-
-    delete undoStack[deleteTargetId];
-
-    confirmModal.classList.remove("active");
+    person.balance = redo.balanceBefore;
 
     saveData();
 };
 
-// SEARCH + SORT
-searchInput.oninput = renderDashboard;
-sortSelect.onchange = renderDashboard;
+// EDIT TX
+window.editTx = (id, index) => {
 
-// DARK MODE
-document.getElementById("darkModeToggle").onclick = () => {
-    document.body.classList.toggle("dark");
+    const person = peopleData.find(p => p.id === id);
+    const t = person.history[index];
+
+    const newAmount = parseFloat(prompt("New amount:", t.amount));
+    const newReason = prompt("New reason:", t.reason);
+
+    if (!newAmount || !newReason) return;
+
+    const diff = newAmount - t.amount;
+
+    person.balance += (t.type === "plus" ? diff : -diff);
+
+    t.amount = newAmount;
+    t.reason = newReason;
+
+    saveData();
 };
 
-// START
-renderDashboard();
+// DELETE TX
+window.deleteTx = (id, index) => {
+
+    const person = peopleData.find(p => p.id === id);
+    const t = person.history[index];
+
+    if (!t) return;
+
+    person.balance += (t.type === "plus" ? -t.amount : t.amount);
+
+    person.history.splice(index, 1);
+
+    saveData();
+};
+
+// DELETE PERSON
+window.promptDelete = (id) => {
+    peopleData = peopleData.filter(p => p.id !== id);
+    saveData();
+};
+
+render();
