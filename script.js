@@ -1,226 +1,333 @@
-// App State management
-let peopleData = JSON.parse(localStorage.getItem('axy_credits')) || [];
-const ADMIN_PASSWORD = "1234";
+// script.js
+
+const VERSION = "1.1.3";
+const ADMIN_PASSWORD = "admin123";
+
+let peopleData =
+JSON.parse(localStorage.getItem("creditData")) || [];
+
 let deleteTargetId = null;
 
-// DOM Elements
-const peopleContainer = document.getElementById('people-container');
-const addPersonBtn = document.getElementById('add-person-btn');
-const personModal = document.getElementById('person-modal');
-const closeModal = document.getElementById('close-modal');
-const savePersonBtn = document.getElementById('save-person-btn');
-const newPersonNameInput = document.getElementById('new-person-name');
+// Elements
+const peopleContainer = document.getElementById('peopleContainer');
 
-// Transaction Modal Elements
-const txModal = document.getElementById('tx-modal');
-const closeTxModal = document.getElementById('close-tx-modal');
-const submitTxBtn = document.getElementById('submit-tx-btn');
-const txModalTitle = document.getElementById('tx-modal-title');
-const txPersonId = document.getElementById('tx-person-id');
-const txType = document.getElementById('tx-type');
-const txAmountInput = document.getElementById('tx-amount');
-const txReasonInput = document.getElementById('tx-reason');
-const txPasswordInput = document.getElementById('tx-password');
+const addPersonBtn = document.getElementById('addPersonBtn');
 
-// Custom Alert Modal Elements
-const alertModal = document.getElementById('alert-modal');
-const alertTitle = document.getElementById('alert-title');
-const alertMessage = document.getElementById('alert-message');
-const closeAlertBtn = document.getElementById('close-alert-btn');
+const personModal = document.getElementById('personModal');
+const closeModal = document.getElementById('closeModal');
+const savePersonBtn = document.getElementById('savePersonBtn');
+const newPersonName = document.getElementById('newPersonName');
 
-// Custom Confirmation Modal Elements
-const confirmModal = document.getElementById('confirm-modal');
-const confirmMessage = document.getElementById('confirm-message');
-const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
-const confirmOkBtn = document.getElementById('confirm-ok-btn');
+const txModal = document.getElementById('txModal');
+const closeTxModal = document.getElementById('closeTxModal');
+const submitTxBtn = document.getElementById('submitTxBtn');
 
-// Custom Alert Function (Replaces standard window.alert)
-function showAlert(title, message) {
-    alertTitle.innerText = title;
-    alertMessage.innerText = message;
-    alertModal.classList.add('active');
-}
-closeAlertBtn.addEventListener('click', () => alertModal.classList.remove('active'));
+const txPersonId = document.getElementById('txPersonId');
+const txType = document.getElementById('txType');
+const txAmount = document.getElementById('txAmount');
+const txReason = document.getElementById('txReason');
+const txPassword = document.getElementById('txPassword');
+const txModalTitle = document.getElementById('txModalTitle');
 
-// Save data helper
-function saveData() {
-    localStorage.setItem('axy_credits', JSON.stringify(peopleData));
+const confirmModal = document.getElementById('confirmModal');
+const confirmMessage = document.getElementById('confirmMessage');
+const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+const confirmOkBtn = document.getElementById('confirmOkBtn');
+
+const versionText = document.getElementById('versionText');
+
+const searchInput = document.getElementById('searchInput');
+const sortSelect = document.getElementById('sortSelect');
+
+versionText.innerText = VERSION;
+
+function saveData(){
+    localStorage.setItem(
+        "creditData",
+        JSON.stringify(peopleData)
+    );
+
     renderDashboard();
 }
 
-// Render interface dynamically
-function renderDashboard() {
+function renderDashboard(){
+
     peopleContainer.innerHTML = '';
 
-    if (peopleData.length === 0) {
-        peopleContainer.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 3rem 0;">No profiles found. Click "+ Add New Person" to begin.</p>`;
-        return;
+    let filtered = [...peopleData];
+
+    const search = searchInput.value.toLowerCase();
+
+    if(search){
+        filtered = filtered.filter(p =>
+            p.name.toLowerCase().includes(search)
+        );
     }
 
-    peopleData.forEach(person => {
+    if(sortSelect.value === 'highest'){
+        filtered.sort((a,b)=>b.balance-a.balance);
+    }
+
+    if(sortSelect.value === 'lowest'){
+        filtered.sort((a,b)=>a.balance-b.balance);
+    }
+
+    if(sortSelect.value === 'alphabetical'){
+        filtered.sort((a,b)=>a.name.localeCompare(b.name));
+    }
+
+    filtered.forEach(person=>{
+
         const card = document.createElement('div');
         card.className = 'card';
-        
-        // Build History List Elements
+
         let historyHTML = '';
-        if (person.history.length === 0) {
-            historyHTML = '<li class="history-item" style="color:#94a3b8">No history yet</li>';
+
+        if(person.history.length === 0){
+            historyHTML =
+            `<li class="history-item">
+                No history yet
+            </li>`;
         } else {
-            // Show latest 4 transactions
-            [...person.history].reverse().slice(0, 4).forEach(item => {
+
+            [...person.history]
+            .reverse()
+            .slice(0,5)
+            .forEach(item=>{
+
                 historyHTML += `
                     <li class="history-item ${item.type}">
-                        <span class="history-reason">${item.reason}</span>
-                        <span class="history-amt">${item.type === 'plus' ? '+' : '-'}$${Math.abs(item.amount).toFixed(2)}</span>
+                        <span>${item.reason}</span>
+                        <span>
+                        ${item.type === 'plus' ? '+' : '-'}
+                        $${Math.abs(item.amount).toFixed(2)}
+                        </span>
                     </li>
                 `;
             });
         }
 
-        // Format balance string cleanly, handling negative signs correctly
-        const formattedBalance = person.balance < 0 
-            ? `-$${Math.abs(person.balance).toFixed(2)}` 
-            : `$${person.balance.toFixed(2)}`;
+        const formattedBalance =
+        person.balance < 0
+        ? `-$${Math.abs(person.balance).toFixed(2)}`
+        : `$${person.balance.toFixed(2)}`;
 
         card.innerHTML = `
             <div class="card-header">
                 <h2>${person.name}</h2>
-                <button class="btn btn-delete-card" onclick="promptDeletePerson('${person.id}')">Delete</button>
+
+                <button
+                class="btn btn-danger"
+                onclick="promptDeletePerson('${person.id}')">
+                    Delete
+                </button>
             </div>
+
             <div class="balance-display">
                 <span>Current Balance</span>
-                <div class="amount" style="color: ${person.balance < 0 ? 'var(--danger)' : 'var(--primary-blue)'}">${formattedBalance}</div>
+
+                <div
+                class="amount"
+                style="color:
+                ${person.balance < 0 ? '#ef4444' : '#60a5fa'}">
+                    ${formattedBalance}
+                </div>
+
+                ${
+                    person.balance < 0
+                    ? `<div class="debt-badge">IN DEBT</div>`
+                    : ''
+                }
             </div>
+
             <div class="card-actions">
-                <button class="btn btn-primary" onclick="openTransactionModal('${person.id}', 'plus')">+ Add</button>
-                <button class="btn btn-secondary" style="border: 1px solid #2563eb; color: #2563eb" onclick="openTransactionModal('${person.id}', 'minus')">- Deduct</button>
+
+                <button
+                class="btn btn-primary"
+                onclick="openTransactionModal('${person.id}','plus')">
+                    + Add
+                </button>
+
+                <button
+                class="btn btn-secondary"
+                onclick="openTransactionModal('${person.id}','minus')">
+                    - Deduct
+                </button>
+
             </div>
+
             <div class="history-section">
                 <h4>Recent Activity</h4>
-                <ul class="history-list">${historyHTML}</ul>
+                <ul class="history-list">
+                    ${historyHTML}
+                </ul>
             </div>
         `;
+
         peopleContainer.appendChild(card);
+
     });
 }
 
-// Open Person Addition Modal
-addPersonBtn.addEventListener('click', () => personModal.classList.add('active'));
-closeModal.addEventListener('click', () => {
-    personModal.classList.remove('active');
-    newPersonNameInput.value = '';
+// Add Person
+addPersonBtn.addEventListener('click', ()=>{
+    personModal.classList.add('active');
 });
 
-// Save New Profile Action
-savePersonBtn.addEventListener('click', () => {
-    const name = newPersonNameInput.value.trim();
-    if (!name) {
-        showAlert("Input Required", "Please enter a valid profile name.");
+closeModal.addEventListener('click', ()=>{
+    personModal.classList.remove('active');
+});
+
+savePersonBtn.addEventListener('click', ()=>{
+
+    const name = newPersonName.value.trim();
+
+    if(!name){
+        alert("Enter a valid name");
         return;
     }
 
-    const newPerson = {
-        id: 'p_' + Date.now(),
-        name: name,
-        balance: 0.00,
-        history: []
-    };
+    peopleData.push({
+        id:'p_'+Date.now(),
+        name,
+        balance:0,
+        history:[]
+    });
 
-    peopleData.push(newPerson);
-    saveData();
-    
-    // reset/close
-    newPersonNameInput.value = '';
+    newPersonName.value = '';
+
     personModal.classList.remove('active');
+
+    saveData();
 });
 
-// Open credit action controls
-window.openTransactionModal = function(id, type) {
-    const person = peopleData.find(p => p.id === id);
-    if (!person) return;
+// Transactions
+window.openTransactionModal = function(id,type){
+
+    const person =
+    peopleData.find(p=>p.id===id);
+
+    if(!person) return;
 
     txPersonId.value = id;
     txType.value = type;
-    txModalTitle.innerText = type === 'plus' ? `Add Credits to ${person.name}` : `Deduct Credits from ${person.name}`;
-    
-    // Reset Form Input fields
-    txAmountInput.value = '';
-    txReasonInput.value = '';
-    txPasswordInput.value = '';
-    
+
+    txModalTitle.innerText =
+    type === 'plus'
+    ? `Add Credits to ${person.name}`
+    : `Deduct Credits from ${person.name}`;
+
+    txAmount.value = '';
+    txReason.value = '';
+    txPassword.value = '';
+
     txModal.classList.add('active');
-};
+}
 
-// Close transaction window
-closeTxModal.addEventListener('click', () => txModal.classList.remove('active'));
-
-// Handle Credit Adjusting Math and Logic Verification
-submitTxBtn.addEventListener('click', () => {
-    const id = txPersonId.value;
-    const type = txType.value;
-    const amount = parseFloat(parseFloat(txAmountInput.value).toFixed(2));
-    const reason = txReasonInput.value.trim();
-    const password = txPasswordInput.value;
-
-    const personIndex = peopleData.findIndex(p => p.id === id);
-    if (personIndex === -1) return;
-
-    // Validation checks
-    if (isNaN(amount) || amount <= 0) {
-        showAlert("Invalid Amount", "Please input a numeric amount higher than 0.00.");
-        return;
-    }
-    if (!reason) {
-        showAlert("Reason Required", "A valid reason description is mandatory for transaction logs.");
-        return;
-    }
-    if (password !== ADMIN_PASSWORD) {
-        showAlert("Access Denied", "Incorrect Admin Password! Changes rejected.");
-        return;
-    }
-
-    // Apply arithmetic updates (allowing balances to go below 0)
-    if (type === 'plus') {
-        peopleData[personIndex].balance += amount;
-    } else {
-        peopleData[personIndex].balance -= amount;
-    }
-
-    // Push details safely
-    peopleData[personIndex].history.push({
-        type: type,
-        amount: amount,
-        reason: reason,
-        date: new Date().toLocaleDateString()
-    });
-
-    saveData();
+closeTxModal.addEventListener('click', ()=>{
     txModal.classList.remove('active');
 });
 
-// Custom Modal confirmation logic for Profile Deletion
-window.promptDeletePerson = function(id) {
-    const person = peopleData.find(p => p.id === id);
-    if (!person) return;
-    
-    deleteTargetId = id;
-    confirmMessage.innerText = `Are you sure you want to permanently delete ${person.name}? All history tracking logs will be removed.`;
-    confirmModal.classList.add('active');
-};
+submitTxBtn.addEventListener('click', ()=>{
 
-confirmCancelBtn.addEventListener('click', () => {
-    confirmModal.classList.remove('active');
-    deleteTargetId = null;
-});
+    const id = txPersonId.value;
+    const type = txType.value;
 
-confirmOkBtn.addEventListener('click', () => {
-    if (deleteTargetId) {
-        peopleData = peopleData.filter(p => p.id !== deleteTargetId);
-        saveData();
+    const amount =
+    parseFloat(
+        parseFloat(txAmount.value).toFixed(2)
+    );
+
+    const reason = txReason.value.trim();
+    const password = txPassword.value;
+
+    if(isNaN(amount) || amount <= 0){
+        alert("Invalid amount");
+        return;
     }
-    confirmModal.classList.remove('active');
-    deleteTargetId = null;
+
+    if(!reason){
+        alert("Reason required");
+        return;
+    }
+
+    if(password !== ADMIN_PASSWORD){
+        alert("Wrong password");
+        return;
+    }
+
+    const person =
+    peopleData.find(p=>p.id===id);
+
+    if(!person) return;
+
+    if(type === 'plus'){
+        person.balance += amount;
+    } else {
+        person.balance -= amount;
+    }
+
+    person.history.push({
+        type,
+        amount,
+        reason,
+        date:new Date().toLocaleString()
+    });
+
+    txModal.classList.remove('active');
+
+    saveData();
 });
 
-// Initial system deployment run loop
+// Delete
+window.promptDeletePerson = function(id){
+
+    const person =
+    peopleData.find(p=>p.id===id);
+
+    if(!person) return;
+
+    deleteTargetId = id;
+
+    confirmMessage.innerText =
+    `Delete ${person.name}?`;
+
+    confirmModal.classList.add('active');
+}
+
+confirmCancelBtn.addEventListener('click', ()=>{
+    confirmModal.classList.remove('active');
+});
+
+confirmOkBtn.addEventListener('click', ()=>{
+
+    peopleData =
+    peopleData.filter(
+        p=>p.id!==deleteTargetId
+    );
+
+    confirmModal.classList.remove('active');
+
+    saveData();
+});
+
+// Search & Sort
+searchInput.addEventListener(
+    'input',
+    renderDashboard
+);
+
+sortSelect.addEventListener(
+    'change',
+    renderDashboard
+);
+
+// Theme
+document.getElementById('darkModeToggle')
+.addEventListener('click', ()=>{
+
+    document.body.classList.toggle('dark');
+});
+
+// Start
 renderDashboard();
