@@ -2,7 +2,7 @@
     --accent:#2563eb;
     --danger:#ef4444;
     --bg:#0b1220;
-    --glass:rgba(255,255,255,0.07);
+    --glass:rgba(255,255,255,0.08);
     --border:rgba(255,255,255,0.12);
 }
 
@@ -13,7 +13,7 @@ body{
     color:white;
 }
 
-/* THEMES (GLOBAL FIX) */
+/* THEMES */
 body.blue{--accent:#2563eb;}
 body.purple{--accent:#9333ea;}
 body.green{--accent:#16a34a;}
@@ -23,80 +23,57 @@ body.midnight{--accent:#38bdf8;--bg:#050814;}
 .topbar{
     display:flex;
     justify-content:space-between;
-    padding:16px;
+    padding:15px;
     align-items:center;
 }
 
-/* CONTROLS */
 .controls{
     display:flex;
     gap:10px;
 }
 
-/* GLOBAL UI */
-button, input, select{
+button,input,select{
     background:var(--glass);
     border:1px solid var(--border);
     color:white;
     padding:8px 12px;
     border-radius:10px;
-    backdrop-filter:blur(12px);
 }
 
-/* BUTTON STYLE */
 button{
-    cursor:pointer;
     background:var(--accent);
-    font-weight:bold;
+    cursor:pointer;
 }
 
-button:hover{
-    filter:brightness(1.1);
-}
+.danger{ background:var(--danger) !important; }
 
-/* DELETE BUTTON */
-.danger{
-    background:var(--danger) !important;
-}
-
-/* GRID */
 #people{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:14px;
-    padding:16px;
+    gap:12px;
+    padding:15px;
 }
 
-/* CARD (FIXED LOOK) */
 .card{
     background:var(--glass);
     border:1px solid var(--border);
-    padding:16px;
-    border-radius:16px;
+    padding:15px;
+    border-radius:15px;
 }
 
-/* NAME */
-.card h3{
-    margin:0 0 8px;
-}
-
-/* BALANCE (FIXED FINANCE STYLE) */
 .balance{
-    font-size:34px;
-    font-weight:700;
+    font-size:32px;
+    font-weight:bold;
     margin:10px 0;
     color:var(--accent);
-    letter-spacing:0.5px;
 }
 
-/* ACTIONS */
 .actions{
     display:flex;
     flex-wrap:wrap;
     gap:6px;
 }
 
-/* MODAL */
 .modal{
     display:none;
     position:fixed;
@@ -106,26 +83,17 @@ button:hover{
     align-items:center;
 }
 
-.modal.active{
-    display:flex;
-}
+.modal.active{display:flex;}
 
 .box{
-    width:620px;
+    width:600px;
     background:var(--glass);
     border:1px solid var(--border);
     padding:20px;
-    border-radius:16px;
+    border-radius:15px;
 }
 
-/* SCROLL FIX */
 .scroll{
     max-height:80vh;
     overflow-y:auto;
-}
-
-/* LOG ITEM */
-#logList div{
-    padding:6px 0;
-    border-bottom:1px solid rgba(255,255,255,0.08);
 }
