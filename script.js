@@ -1,4 +1,4 @@
-const VERSION = "1.1.9";
+const VERSION = "1.1.10";
 
 const ADMIN_PASSWORD = "admin123";
 
@@ -12,6 +12,8 @@ JSON.parse(localStorage.getItem("settings")) || {
 
 let undoStack = {};
 let redoStack = {};
+
+let deleteTarget = null;
 
 /* UPDATE LOG */
 const LOG = [
@@ -62,6 +64,15 @@ const LOG = [
             "Smooth balance rolling",
             "Custom themes",
             "Theme persistence"
+        ]
+    },
+
+    {
+        version:"1.1.10",
+        changes:[
+            "Delete people system",
+            "Delete confirmation modal",
+            "Undo/redo cleanup"
         ]
     }
 
@@ -312,6 +323,11 @@ function render(){
                     Redo
                 </button>
 
+                <button
+                onclick="promptDelete('${person.id}')">
+                    Delete
+                </button>
+
             </div>
         `;
 
@@ -501,6 +517,48 @@ window.redo = function(id){
     last.balance;
 
     save();
+};
+
+/* DELETE */
+window.promptDelete = function(id){
+
+    const person =
+    peopleData.find(
+        p=>p.id===id
+    );
+
+    if(!person) return;
+
+    deleteTarget = id;
+
+    document.getElementById(
+        "deleteText"
+    ).innerText =
+    `Delete ${person.name}?`;
+
+    document.getElementById(
+        "deleteModal"
+    ).classList.add("active");
+};
+
+document.getElementById(
+    "confirmDeleteBtn"
+).onclick = () => {
+
+    if(!deleteTarget) return;
+
+    peopleData =
+    peopleData.filter(
+        p=>p.id!==deleteTarget
+    );
+
+    delete undoStack[deleteTarget];
+    delete redoStack[deleteTarget];
+
+    deleteTarget = null;
+
+    save();
+    closeAll();
 };
 
 /* SEARCH + SORT */
