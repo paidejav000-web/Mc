@@ -1,80 +1,46 @@
-const VERSION = "1.1.10";
+const VERSION = "1.1.11";
 
-const ADMIN_PASSWORD = "admin123";
-
+/* STORAGE */
 let peopleData =
 JSON.parse(localStorage.getItem("creditData")) || [];
 
 let settings =
 JSON.parse(localStorage.getItem("settings")) || {
-    theme:"blue"
+    theme:"blue",
+    adminPassword:"admin123"
 };
 
 let undoStack = {};
 let redoStack = {};
-
 let deleteTarget = null;
 
 /* UPDATE LOG */
 const LOG = [
 
-    {
-        version:"1.1.0",
-        changes:[
-            "Base system"
-        ]
-    },
+{
+version:"1.1.11",
+changes:[
+"Glassmorphism UI",
+"Editable admin password",
+"Scrollable update logs",
+"Negative balances allowed"
+]
+},
 
-    {
-        version:"1.1.3",
-        changes:[
-            "Undo system",
-            "Avatars"
-        ]
-    },
+{
+version:"1.1.10",
+changes:[
+"Delete system"
+]
+},
 
-    {
-        version:"1.1.6",
-        changes:[
-            "Avatar upload",
-            "Theme fixes",
-            "Changelog"
-        ]
-    },
-
-    {
-        version:"1.1.7",
-        changes:[
-            "Smooth animations",
-            "Button redesign"
-        ]
-    },
-
-    {
-        version:"1.1.8",
-        changes:[
-            "UI stability fixes",
-            "Render rewrite"
-        ]
-    },
-
-    {
-        version:"1.1.9",
-        changes:[
-            "Smooth balance rolling",
-            "Custom themes",
-            "Theme persistence"
-        ]
-    },
-
-    {
-        version:"1.1.10",
-        changes:[
-            "Delete people system",
-            "Delete confirmation modal",
-            "Undo/redo cleanup"
-        ]
-    }
+{
+version:"1.1.9",
+changes:[
+"Theme system",
+"Smooth number rolling"
+]
+}
 
 ];
 
@@ -82,30 +48,28 @@ const LOG = [
 const peopleContainer =
 document.getElementById("peopleContainer");
 
-const versionText =
-document.getElementById("versionText");
-
-versionText.innerText = VERSION;
+document.getElementById("versionText")
+.innerText = VERSION;
 
 /* THEME */
-document.body.className = settings.theme;
+document.body.className =
+settings.theme;
 
 const themeSelect =
 document.getElementById("themeSelect");
 
-themeSelect.value = settings.theme;
+themeSelect.value =
+settings.theme;
 
 themeSelect.onchange = () => {
 
-    settings.theme = themeSelect.value;
+    settings.theme =
+    themeSelect.value;
 
     document.body.className =
     settings.theme;
 
-    localStorage.setItem(
-        "settings",
-        JSON.stringify(settings)
-    );
+    saveSettings();
 };
 
 /* SAVE */
@@ -119,29 +83,63 @@ function save(){
     render();
 }
 
-/* CLOSE MODALS */
+/* SAVE SETTINGS */
+function saveSettings(){
+
+    localStorage.setItem(
+        "settings",
+        JSON.stringify(settings)
+    );
+}
+
+/* CLOSE */
 window.closeAll = function(){
 
     document.querySelectorAll(".modal")
-    .forEach(m => {
+    .forEach(m=>{
         m.classList.remove("active");
     });
+};
+
+/* SETTINGS */
+window.openSettings = function(){
+
+    document.getElementById(
+        "adminPasswordInput"
+    ).value =
+    settings.adminPassword;
+
+    document.getElementById(
+        "settingsModal"
+    ).classList.add("active");
+};
+
+document.getElementById(
+"saveSettingsBtn"
+).onclick = () => {
+
+    settings.adminPassword =
+    document.getElementById(
+        "adminPasswordInput"
+    ).value;
+
+    saveSettings();
+    closeAll();
 };
 
 /* CHANGELOG */
 window.openChangelog = function(){
 
-    const modal =
-    document.getElementById("changelogModal");
-
     const text =
-    document.getElementById("changelogText");
+    document.getElementById(
+        "changelogText"
+    );
 
-    text.innerHTML = LOG
-    .slice()
-    .reverse()
-    .map(log => `
-        <div style="margin-bottom:15px">
+    text.innerHTML =
+    LOG.map(log=>`
+
+        <div style="margin-bottom:20px">
+
             <h3 style="color:var(--accent)">
                 v${log.version}
             </h3>
@@ -151,17 +149,20 @@ window.openChangelog = function(){
                     .map(c=>`<li>${c}</li>`)
                     .join("")}
             </ul>
+
         </div>
+
     `).join("");
 
-    modal.classList.add("active");
+    document.getElementById(
+        "changelogModal"
+    ).classList.add("active");
 };
 
-/* ANIMATE BALANCE */
+/* BALANCE ANIMATION */
 function animateBalance(el,start,end){
 
     let startTime = null;
-    const duration = 500;
 
     function update(time){
 
@@ -170,7 +171,7 @@ function animateBalance(el,start,end){
 
         const progress =
         Math.min(
-            (time-startTime)/duration,
+            (time-startTime)/500,
             1
         );
 
@@ -233,45 +234,7 @@ function render(){
 
     peopleContainer.innerHTML = "";
 
-    let filtered = [...peopleData];
-
-    const search =
-    document.getElementById("searchInput")
-    .value
-    .toLowerCase();
-
-    const sort =
-    document.getElementById("sortSelect")
-    .value;
-
-    if(search){
-
-        filtered = filtered.filter(p =>
-            p.name
-            .toLowerCase()
-            .includes(search)
-        );
-    }
-
-    if(sort === "highest"){
-        filtered.sort((a,b)=>
-            b.balance-a.balance
-        );
-    }
-
-    if(sort === "lowest"){
-        filtered.sort((a,b)=>
-            a.balance-b.balance
-        );
-    }
-
-    if(sort === "alphabetical"){
-        filtered.sort((a,b)=>
-            a.name.localeCompare(b.name)
-        );
-    }
-
-    filtered.forEach(person => {
+    peopleData.forEach(person => {
 
         const card =
         document.createElement("div");
@@ -296,7 +259,8 @@ function render(){
 
             </div>
 
-            <div class="balance"
+            <div
+            class="balance"
             id="balance-${person.id}">
                 $0.00
             </div>
@@ -329,17 +293,15 @@ function render(){
                 </button>
 
             </div>
+
         `;
 
         peopleContainer.appendChild(card);
 
-        const balanceEl =
-        document.getElementById(
-            `balance-${person.id}`
-        );
-
         animateBalance(
-            balanceEl,
+            document.getElementById(
+                `balance-${person.id}`
+            ),
             0,
             person.balance
         );
@@ -347,16 +309,18 @@ function render(){
 }
 
 /* ADD PERSON */
-document.getElementById("addPersonBtn")
-.onclick = () => {
+document.getElementById(
+"addPersonBtn"
+).onclick = () => {
 
     document.getElementById(
         "personModal"
     ).classList.add("active");
 };
 
-document.getElementById("savePersonBtn")
-.onclick = () => {
+document.getElementById(
+"savePersonBtn"
+).onclick = () => {
 
     const name =
     document.getElementById(
@@ -384,25 +348,30 @@ window.openTx = function(id,type){
         p=>p.id===id
     );
 
-    document.getElementById("txId")
-    .value = id;
+    document.getElementById(
+        "txId"
+    ).value = id;
 
-    document.getElementById("txType")
-    .value = type;
+    document.getElementById(
+        "txType"
+    ).value = type;
 
-    document.getElementById("txTitle")
-    .innerText =
-        type==="plus"
-        ? `Add to ${person.name}`
-        : `Deduct from ${person.name}`;
+    document.getElementById(
+        "txTitle"
+    ).innerText =
+    type==="plus"
+    ? `Add to ${person.name}`
+    : `Deduct from ${person.name}`;
 
-    document.getElementById("txModal")
-    .classList.add("active");
+    document.getElementById(
+        "txModal"
+    ).classList.add("active");
 };
 
 /* SUBMIT TX */
-document.getElementById("txSubmit")
-.onclick = () => {
+document.getElementById(
+"txSubmit"
+).onclick = () => {
 
     const id =
     document.getElementById("txId")
@@ -414,20 +383,25 @@ document.getElementById("txSubmit")
 
     const amount =
     parseFloat(
-        document.getElementById("txAmount")
-        .value
+        document.getElementById(
+            "txAmount"
+        ).value
     );
 
     const reason =
-    document.getElementById("txReason")
-    .value;
+    document.getElementById(
+        "txReason"
+    ).value;
 
-    const pass =
-    document.getElementById("txPass")
-    .value;
+    const password =
+    document.getElementById(
+        "txPass"
+    ).value;
 
-    if(pass !== ADMIN_PASSWORD)
-        return;
+    if(
+        password !==
+        settings.adminPassword
+    ) return;
 
     if(isNaN(amount) || amount <= 0)
         return;
@@ -527,8 +501,6 @@ window.promptDelete = function(id){
         p=>p.id===id
     );
 
-    if(!person) return;
-
     deleteTarget = id;
 
     document.getElementById(
@@ -542,10 +514,8 @@ window.promptDelete = function(id){
 };
 
 document.getElementById(
-    "confirmDeleteBtn"
+"confirmDeleteBtn"
 ).onclick = () => {
-
-    if(!deleteTarget) return;
 
     peopleData =
     peopleData.filter(
@@ -555,18 +525,9 @@ document.getElementById(
     delete undoStack[deleteTarget];
     delete redoStack[deleteTarget];
 
-    deleteTarget = null;
-
     save();
     closeAll();
 };
-
-/* SEARCH + SORT */
-document.getElementById("searchInput")
-.oninput = render;
-
-document.getElementById("sortSelect")
-.onchange = render;
 
 /* START */
 render();
