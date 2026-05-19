@@ -1,30 +1,18 @@
 :root{
-    --bg:#0f172a;
-    --card:#1e293b;
+    --bg:#081120;
     --accent:#2563eb;
     --text:white;
+    --glass:rgba(255,255,255,0.08);
+    --border:rgba(255,255,255,0.15);
 }
 
 /* THEMES */
-body.blue{
-    --accent:#2563eb;
-}
-
-body.purple{
-    --accent:#9333ea;
-}
-
-body.green{
-    --accent:#16a34a;
-}
-
-body.red{
-    --accent:#dc2626;
-}
-
+body.blue{ --accent:#2563eb; }
+body.purple{ --accent:#9333ea; }
+body.green{ --accent:#16a34a; }
+body.red{ --accent:#dc2626; }
 body.midnight{
     --bg:#020617;
-    --card:#0f172a;
     --accent:#38bdf8;
 }
 
@@ -33,7 +21,19 @@ body{
     font-family:Arial;
     background:var(--bg);
     color:var(--text);
-    transition:0.35s ease;
+    overflow-x:hidden;
+}
+
+/* BACKGROUND */
+.background-glow{
+    position:fixed;
+    inset:0;
+    background:
+    radial-gradient(circle at top left,
+    var(--accent),
+    transparent 40%);
+    opacity:0.15;
+    pointer-events:none;
 }
 
 /* TOPBAR */
@@ -41,7 +41,7 @@ body{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:15px;
+    padding:20px;
     flex-wrap:wrap;
     gap:15px;
 }
@@ -49,32 +49,33 @@ body{
 /* CONTROLS */
 .top-controls{
     display:flex;
-    gap:10px;
     flex-wrap:wrap;
+    gap:10px;
 }
 
-/* VERSION */
-.version-box{
-    color:var(--accent);
-    cursor:pointer;
-    font-weight:bold;
+/* GLASS */
+.card,
+.modal-content,
+input,
+select{
+    background:var(--glass);
+    backdrop-filter:blur(12px);
+    border:1px solid var(--border);
 }
 
 /* GRID */
 #peopleContainer{
     display:grid;
     grid-template-columns:
-    repeat(auto-fit,minmax(260px,1fr));
-    gap:15px;
-    padding:15px;
+    repeat(auto-fit,minmax(280px,1fr));
+    gap:18px;
+    padding:20px;
 }
 
 /* CARD */
 .card{
-    background:var(--card);
     border-radius:18px;
-    padding:16px;
-    animation:fade 0.25s ease;
+    padding:18px;
     transition:0.25s ease;
 }
 
@@ -82,30 +83,25 @@ body{
     transform:translateY(-4px);
 }
 
-/* CARD TOP */
+/* TOP */
 .card-top{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:12px;
 }
 
 /* AVATAR */
 .avatar{
-    width:46px;
-    height:46px;
+    width:50px;
+    height:50px;
     border-radius:50%;
     background:var(--accent);
     display:flex;
     justify-content:center;
     align-items:center;
     overflow:hidden;
-    cursor:pointer;
     font-weight:bold;
-    transition:0.2s ease;
-}
-
-.avatar:hover{
-    transform:scale(1.08);
+    cursor:pointer;
 }
 
 .avatar img{
@@ -116,9 +112,9 @@ body{
 
 /* BALANCE */
 .balance{
-    font-size:32px;
+    font-size:34px;
+    margin:18px 0;
     font-weight:bold;
-    margin:15px 0;
     color:var(--accent);
 }
 
@@ -127,25 +123,19 @@ button{
     border:none;
     padding:10px 14px;
     border-radius:12px;
+    cursor:pointer;
     background:var(--accent);
     color:white;
     font-weight:bold;
-    cursor:pointer;
     transition:0.2s ease;
 }
 
 button:hover{
     transform:translateY(-2px);
-    opacity:0.9;
 }
 
 button:active{
     transform:scale(0.96);
-}
-
-/* DELETE BUTTON */
-#confirmDeleteBtn{
-    background:#dc2626;
 }
 
 /* ACTIONS */
@@ -159,10 +149,9 @@ button:active{
 input,
 select{
     padding:10px;
-    border:none;
-    border-radius:10px;
-    background:#0f172a;
+    border-radius:12px;
     color:white;
+    outline:none;
 }
 
 /* MODALS */
@@ -172,8 +161,7 @@ select{
     display:none;
     justify-content:center;
     align-items:center;
-    background:rgba(0,0,0,0.6);
-    animation:fade 0.2s ease;
+    background:rgba(0,0,0,0.55);
 }
 
 .modal.active{
@@ -181,37 +169,28 @@ select{
 }
 
 .modal-content{
-    background:var(--card);
-    width:320px;
+    width:340px;
     padding:20px;
-    border-radius:16px;
-    animation:pop 0.25s ease;
+    border-radius:20px;
 }
 
+/* SCROLLABLE */
+.scrollable{
+    max-height:70vh;
+    overflow-y:auto;
+}
+
+/* VERSION */
+.version-box{
+    color:var(--accent);
+    cursor:pointer;
+    font-weight:bold;
+}
+
+/* MODAL BUTTONS */
 .modal-buttons{
     display:flex;
     justify-content:flex-end;
     gap:10px;
     margin-top:15px;
-}
-
-/* ANIMATIONS */
-@keyframes pop{
-    from{
-        transform:scale(0.9);
-        opacity:0;
-    }
-    to{
-        transform:scale(1);
-        opacity:1;
-    }
-}
-
-@keyframes fade{
-    from{
-        opacity:0;
-    }
-    to{
-        opacity:1;
-    }
 }
