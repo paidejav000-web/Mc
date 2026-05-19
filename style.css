@@ -1,141 +1,82 @@
-:root{
-    --bg:#081120;
-    --accent:#2563eb;
-    --text:white;
-    --glass:rgba(255,255,255,0.08);
-    --border:rgba(255,255,255,0.15);
-}
-
-/* THEMES */
-body.blue{ --accent:#2563eb; }
-body.purple{ --accent:#9333ea; }
-body.green{ --accent:#16a34a; }
-body.red{ --accent:#dc2626; }
-body.midnight{ --accent:#38bdf8; --bg:#020617; }
-
 body{
     margin:0;
     font-family:Arial;
-    background:var(--bg);
-    color:var(--text);
+    color:white;
+    background:#0b1220;
 }
 
-/* BACKGROUND */
-.background-glow{
+.bg{
     position:fixed;
     inset:0;
-    background:radial-gradient(circle at top left,var(--accent),transparent 40%);
-    opacity:0.15;
+    background:radial-gradient(circle at top,#3b82f6,transparent);
+    opacity:0.2;
 }
 
-/* TOPBAR */
+/* TOP BAR */
 .topbar{
     display:flex;
     justify-content:space-between;
+    padding:15px;
     align-items:center;
-    padding:20px;
-    flex-wrap:wrap;
 }
 
-/* GRID */
-#peopleContainer{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:18px;
-    padding:20px;
+.controls{
+    display:flex;
+    gap:10px;
 }
 
-/* GLASS */
-.card,
-.modal-content,
-input,
-select{
-    background:var(--glass);
-    backdrop-filter:blur(12px);
-    border:1px solid var(--border);
+/* GLASS SYSTEM */
+button, input, select, .glass-btn{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.15);
     color:white;
-}
-
-/* CARD */
-.card{
-    border-radius:18px;
-    padding:18px;
-}
-
-/* BUTTONS */
-button{
-    padding:10px 14px;
-    border-radius:12px;
-    border:none;
+    padding:8px 12px;
+    border-radius:10px;
+    backdrop-filter:blur(10px);
     cursor:pointer;
-    background:var(--accent);
-    color:white;
-    font-weight:bold;
-    transition:0.2s;
 }
 
-button:hover{
-    transform:translateY(-2px);
+/* PEOPLE */
+#people{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:15px;
+    padding:15px;
 }
 
-button:active{
-    transform:scale(0.96);
+.card{
+    background:rgba(255,255,255,0.06);
+    padding:15px;
+    border-radius:15px;
 }
 
-/* DELETE BUTTON */
-.danger-btn{
-    background:#dc2626 !important;
-}
-
-/* ACTIONS */
+/* BUTTON ROW */
 .actions{
     display:flex;
     flex-wrap:wrap;
-    gap:8px;
+    gap:5px;
 }
 
 /* MODALS */
 .modal{
+    display:none;
     position:fixed;
     inset:0;
-    display:none;
+    background:rgba(0,0,0,0.6);
     justify-content:center;
     align-items:center;
-    background:rgba(0,0,0,0.55);
 }
 
-.modal.active{ display:flex; }
-
-.modal-content{
-    width:340px;
+.modal-box{
+    width:600px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.2);
     padding:20px;
-    border-radius:20px;
+    border-radius:15px;
 }
 
-.scrollable{
+/* SCROLL */
+.scroll{
     max-height:80vh;
     overflow-y:auto;
-}
-
-/* HISTORY */
-.history-modal{
-    width:700px;
-    max-width:95%;
-}
-
-.history-item{
-    display:flex;
-    justify-content:space-between;
-    padding:10px;
-    border-radius:12px;
-    margin-bottom:8px;
-    background:rgba(255,255,255,0.05);
-}
-
-.history-positive{ border-left:4px solid #16a34a; }
-.history-negative{ border-left:4px solid #dc2626; }
-
-/* CHART */
-#historyChart{
-    margin-top:20px;
 }
