@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Credit Tracker v1.2.1</title>
+<title>Credit Tracker v1.2.2</title>
 
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body>
+<body class="blue">
 
 <div class="topbar">
-
-    <div>
-        <h2>Credit Tracker</h2>
-        <div class="version">v1.2.1</div>
-    </div>
+    <h2>Credit Tracker</h2>
 
     <div class="controls">
 
@@ -35,19 +31,49 @@
         </select>
 
         <button onclick="openLogs()">Logs</button>
-        <button onclick="addPerson()">+ Add</button>
+        <button onclick="openAdd()">+ Add</button>
 
     </div>
-
 </div>
 
 <div id="people"></div>
 
+<!-- ADD PERSON MODAL -->
+<div class="modal" id="addModal">
+    <div class="box">
+        <h3>Add Person</h3>
+        <input id="addName" placeholder="Name">
+
+        <div class="actions">
+            <button onclick="closeAll()">Cancel</button>
+            <button onclick="confirmAdd()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- TRANSACTION MODAL -->
+<div class="modal" id="txModal">
+    <div class="box">
+
+        <h3 id="txTitle"></h3>
+
+        <input id="txAmount" type="number" placeholder="Amount">
+        <input id="txReason" placeholder="Reason">
+        <input id="txPass" type="password" placeholder="Admin Password">
+
+        <div class="actions">
+            <button onclick="closeAll()">Cancel</button>
+            <button onclick="confirmTx()">Submit</button>
+        </div>
+
+    </div>
+</div>
+
 <!-- HISTORY -->
-<div id="historyModal" class="modal">
+<div class="modal" id="historyModal">
     <div class="box scroll">
 
-        <h2 id="historyTitle"></h2>
+        <h3 id="historyTitle"></h3>
         <div id="historyList"></div>
         <canvas id="chart"></canvas>
 
@@ -57,10 +83,10 @@
 </div>
 
 <!-- LOGS -->
-<div id="logModal" class="modal">
+<div class="modal" id="logModal">
     <div class="box scroll">
 
-        <h2>Update Logs</h2>
+        <h3>Update Logs</h3>
         <div id="logList"></div>
 
         <button onclick="closeAll()">Close</button>
