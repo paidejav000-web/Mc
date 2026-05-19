@@ -1,5 +1,4 @@
 let people = JSON.parse(localStorage.getItem("people")) || [];
-
 let settings = JSON.parse(localStorage.getItem("settings")) || {
     theme:"blue",
     admin:"1234"
@@ -9,7 +8,10 @@ let undo = {};
 let redo = {};
 let chart;
 
-/* APPLY THEME (GLOBAL FIX) */
+let currentTxId = null;
+let currentTxType = null;
+
+/* THEME */
 function applyTheme(){
     document.body.className = settings.theme;
 }
@@ -27,9 +29,7 @@ function render(){
     const box = document.getElementById("people");
     box.innerHTML = "";
 
-    let list = [...people];
-
-    list.forEach(p=>{
+    people.forEach(p=>{
 
         const div = document.createElement("div");
         div.className = "card";
@@ -43,8 +43,8 @@ function render(){
 
             <div class="actions">
 
-                <button onclick="tx('${p.id}',1)">Add</button>
-                <button onclick="tx('${p.id}',-1)">Deduct</button>
+                <button onclick="openTx('${p.id}','plus')">Add</button>
+                <button onclick="openTx('${p.id}','minus')">Deduct</button>
                 <button onclick="openHistory('${p.id}')">History</button>
                 <button onclick="undoTx('${p.id}')">Undo</button>
                 <button onclick="redoTx('${p.id}')">Redo</button>
@@ -57,9 +57,14 @@ function render(){
     });
 }
 
-/* ADD PERSON */
-function addPerson(){
-    const name = prompt("Name:");
+/* ADD PERSON (UI ONLY) */
+function openAdd(){
+    document.getElementById("addModal").classList.add("active");
+}
+
+function confirmAdd(){
+
+    const name = document.getElementById("addName").value;
     if(!name) return;
 
     people.push({
@@ -69,52 +74,52 @@ function addPerson(){
         history:[]
     });
 
+    document.getElementById("addName").value = "";
+    closeAll();
     save();
 }
 
-/* TX */
-function tx(id,type){
+/* TRANSACTION UI */
+function openTx(id,type){
 
-    const amt = parseFloat(prompt("Amount"));
-    const reason = prompt("Reason");
-    const pass = prompt("Password");
+    currentTxId = id;
+    currentTxType = type;
+
+    document.getElementById("txModal").classList.add("active");
+    document.getElementById("txTitle").innerText =
+    type==="plus" ? "Add Credits" : "Deduct Credits";
+}
+
+function confirmTx(){
+
+    const amt = parseFloat(document.getElementById("txAmount").value);
+    const reason = document.getElementById("txReason").value;
+    const pass = document.getElementById("txPass").value;
 
     if(pass !== settings.admin || !amt) return;
 
-    const p = people.find(x=>x.id===id);
+    let p = people.find(x=>x.id===currentTxId);
 
-    undo[id] = undo[id] || [];
-    redo[id] = [];
+    undo[currentTxId] = undo[currentTxId] || [];
+    redo[currentTxId] = [];
 
-    undo[id].push(p.balance);
+    undo[currentTxId].push(p.balance);
 
-    p.balance += type * amt;
+    if(currentTxType==="plus") p.balance += amt;
+    else p.balance -= amt;
 
     p.history.push({
-        type,amt,reason,
+        type:currentTxType,
+        amt,
+        reason,
         date:new Date().toLocaleString()
     });
 
-    save();
-}
+    document.getElementById("txAmount").value="";
+    document.getElementById("txReason").value="";
+    document.getElementById("txPass").value="";
 
-/* UNDO */
-function undoTx(id){
-    const p = people.find(x=>x.id===id);
-    if(!undo[id]?.length) return;
-
-    redo[id].push(p.balance);
-    p.balance = undo[id].pop();
-    save();
-}
-
-/* REDO */
-function redoTx(id){
-    const p = people.find(x=>x.id===id);
-    if(!redo[id]?.length) return;
-
-    undo[id].push(p.balance);
-    p.balance = redo[id].pop();
+    closeAll();
     save();
 }
 
@@ -124,19 +129,18 @@ function openHistory(id){
     const p = people.find(x=>x.id===id);
 
     document.getElementById("historyModal").classList.add("active");
+
     document.getElementById("historyTitle").innerText = p.name;
 
     document.getElementById("historyList").innerHTML =
     p.history.map(h=>`
-        <div>
-            ${h.reason} — $${h.amt}
-        </div>
+        <div>${h.reason} — $${h.amt}</div>
     `).join("");
 
     let labels=[],data=[],b=0;
 
     p.history.forEach((h,i)=>{
-        b += h.type * h.amt;
+        b += h.type==="plus"?h.amt:-h.amt;
         labels.push(i);
         data.push(b);
     });
@@ -149,20 +153,26 @@ function openHistory(id){
     });
 }
 
-/* LOGS (FULL HISTORY FROM START FIXED) */
-function openLogs(){
+/* UNDO */
+function undoTx(id){
+    let p = people.find(x=>x.id===id);
+    if(!undo[id]?.length) return;
 
-    const logs = [
-        "v1.0 - initial build",
-        "v1.1 - theme system",
-        "v1.2 - graph system",
-        "v1.2.1 - UI stabilization + fixes"
-    ];
+    redo[id] = redo[id] || [];
+    redo[id].push(p.balance);
 
-    document.getElementById("logModal").classList.add("active");
+    p.balance = undo[id].pop();
+    save();
+}
 
-    document.getElementById("logList").innerHTML =
-    logs.map(l=>`<div>${l}</div>`).join("");
+/* REDO */
+function redoTx(id){
+    let p = people.find(x=>x.id===id);
+    if(!redo[id]?.length) return;
+
+    undo[id].push(p.balance);
+    p.balance = redo[id].pop();
+    save();
 }
 
 /* DELETE */
@@ -171,13 +181,36 @@ function del(id){
     save();
 }
 
+/* LOGS (FULL HISTORY FIXED) */
+function openLogs(){
+
+    const logs = [
+        "v1.0 - start",
+        "v1.1 - themes",
+        "v1.2 - graphs",
+        "v1.2.1 - UI fix",
+        "v1.2.2 - UI-only transactions (NO prompts)"
+    ];
+
+    document.getElementById("logModal").classList.add("active");
+
+    document.getElementById("logList").innerHTML =
+    logs.map(l=>`<div>${l}</div>`).join("");
+}
+
+/* CLOSE */
+function closeAll(){
+    document.querySelectorAll(".modal")
+    .forEach(m=>m.classList.remove("active"));
+}
+
 /* CONTROLS */
 document.getElementById("theme").onchange=(e)=>{
     settings.theme = e.target.value;
     applyTheme();
 };
 
-document.getElementById("sort").onchange=render;
 document.getElementById("search").oninput=render;
+document.getElementById("sort").onchange=render;
 
 render();
