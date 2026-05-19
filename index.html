@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Credit Tracker v1.1.12</title>
+<title>Credit Tracker v1.1.13</title>
 
 <link rel="stylesheet" href="style.css">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -27,9 +26,7 @@
 
     <div class="top-controls">
 
-        <input
-        id="searchInput"
-        placeholder="Search users">
+        <input id="searchInput" placeholder="Search users">
 
         <select id="sortSelect">
             <option value="default">Sort</option>
@@ -46,13 +43,8 @@
             <option value="midnight">Midnight</option>
         </select>
 
-        <button onclick="openSettings()">
-            ⚙️ Settings
-        </button>
-
-        <button id="addPersonBtn">
-            + Add
-        </button>
+        <button onclick="openSettings()">⚙️ Settings</button>
+        <button id="addPersonBtn">+ Add</button>
 
     </div>
 
@@ -62,80 +54,47 @@
 
 <!-- CHANGELOG -->
 <div class="modal" id="changelogModal">
-
     <div class="modal-content scrollable">
-
         <h2>Update Log</h2>
-
         <div id="changelogText"></div>
-
-        <button onclick="closeAll()">
-            Close
-        </button>
-
+        <button onclick="closeAll()">Close</button>
     </div>
-
 </div>
 
 <!-- SETTINGS -->
 <div class="modal" id="settingsModal">
-
     <div class="modal-content">
-
         <h2>Settings</h2>
 
         <label>Admin Password</label>
-
-        <input
-        id="adminPasswordInput"
-        type="text">
+        <input id="adminPasswordInput" type="text">
 
         <div class="modal-buttons">
-
-            <button onclick="closeAll()">
-                Cancel
-            </button>
-
-            <button id="saveSettingsBtn">
-                Save
-            </button>
-
+            <button onclick="closeAll()">Cancel</button>
+            <button id="saveSettingsBtn">Save</button>
         </div>
 
     </div>
-
 </div>
 
 <!-- ADD PERSON -->
 <div class="modal" id="personModal">
-
     <div class="modal-content">
 
         <h2>Create Person</h2>
 
-        <input
-        id="newPersonName"
-        placeholder="Name">
+        <input id="newPersonName" placeholder="Name">
 
         <div class="modal-buttons">
-
-            <button onclick="closeAll()">
-                Cancel
-            </button>
-
-            <button id="savePersonBtn">
-                Save
-            </button>
-
+            <button onclick="closeAll()">Cancel</button>
+            <button id="savePersonBtn">Save</button>
         </div>
 
     </div>
-
 </div>
 
 <!-- TRANSACTION -->
 <div class="modal" id="txModal">
-
     <div class="modal-content">
 
         <h2 id="txTitle"></h2>
@@ -143,85 +102,47 @@
         <input type="hidden" id="txId">
         <input type="hidden" id="txType">
 
-        <input
-        id="txAmount"
-        type="number"
-        step="0.01"
-        placeholder="Amount">
-
-        <input
-        id="txReason"
-        placeholder="Reason">
-
-        <input
-        id="txPass"
-        type="password"
-        placeholder="Admin Password">
+        <input id="txAmount" type="number" step="0.01" placeholder="Amount">
+        <input id="txReason" placeholder="Reason">
+        <input id="txPass" type="password" placeholder="Admin Password">
 
         <div class="modal-buttons">
-
-            <button onclick="closeAll()">
-                Cancel
-            </button>
-
-            <button id="txSubmit">
-                Submit
-            </button>
-
+            <button onclick="closeAll()">Cancel</button>
+            <button id="txSubmit">Submit</button>
         </div>
 
     </div>
-
 </div>
 
 <!-- DELETE -->
 <div class="modal" id="deleteModal">
-
     <div class="modal-content">
-
         <h2>Delete Person</h2>
-
         <p id="deleteText"></p>
 
         <div class="modal-buttons">
-
-            <button onclick="closeAll()">
-                Cancel
-            </button>
-
-            <button id="confirmDeleteBtn">
-                Delete
-            </button>
-
+            <button onclick="closeAll()">Cancel</button>
+            <button id="confirmDeleteBtn" class="danger-btn">Delete</button>
         </div>
 
     </div>
-
 </div>
 
 <!-- HISTORY -->
 <div class="modal" id="historyModal">
-
     <div class="modal-content scrollable history-modal">
 
-        <h2 id="historyTitle">
-            History
-        </h2>
+        <h2 id="historyTitle">History</h2>
 
         <div id="historyList"></div>
 
         <canvas id="historyChart"></canvas>
 
         <div class="modal-buttons">
-
-            <button onclick="closeAll()">
-                Close
-            </button>
-
+            <button onclick="closeAll()">Close</button>
         </div>
 
     </div>
-
 </div>
 
 <script src="script.js"></script>
