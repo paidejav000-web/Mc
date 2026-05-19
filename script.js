@@ -1,4 +1,4 @@
-const VERSION = "1.1.11";
+const VERSION = "1.1.12";
 
 /* STORAGE */
 let peopleData =
@@ -13,32 +13,26 @@ JSON.parse(localStorage.getItem("settings")) || {
 let undoStack = {};
 let redoStack = {};
 let deleteTarget = null;
+let currentChart = null;
 
 /* UPDATE LOG */
 const LOG = [
 
 {
+version:"1.1.12",
+changes:[
+"Transaction logs",
+"Balance graph",
+"Fixed sorting",
+"Fixed themes"
+]
+},
+
+{
 version:"1.1.11",
 changes:[
-"Glassmorphism UI",
-"Editable admin password",
-"Scrollable update logs",
-"Negative balances allowed"
-]
-},
-
-{
-version:"1.1.10",
-changes:[
-"Delete system"
-]
-},
-
-{
-version:"1.1.9",
-changes:[
-"Theme system",
-"Smooth number rolling"
+"Glass UI",
+"Editable password"
 ]
 }
 
@@ -48,8 +42,9 @@ changes:[
 const peopleContainer =
 document.getElementById("peopleContainer");
 
-document.getElementById("versionText")
-.innerText = VERSION;
+document.getElementById(
+"versionText"
+).innerText = VERSION;
 
 /* THEME */
 document.body.className =
@@ -83,7 +78,7 @@ function save(){
     render();
 }
 
-/* SAVE SETTINGS */
+/* SETTINGS SAVE */
 function saveSettings(){
 
     localStorage.setItem(
@@ -124,6 +119,7 @@ document.getElementById(
     ).value;
 
     saveSettings();
+
     closeAll();
 };
 
@@ -234,7 +230,48 @@ function render(){
 
     peopleContainer.innerHTML = "";
 
-    peopleData.forEach(person => {
+    let filtered = [...peopleData];
+
+    const search =
+    document.getElementById(
+        "searchInput"
+    ).value.toLowerCase();
+
+    const sort =
+    document.getElementById(
+        "sortSelect"
+    ).value;
+
+    /* SEARCH */
+    if(search){
+
+        filtered = filtered.filter(person =>
+            person.name
+            .toLowerCase()
+            .includes(search)
+        );
+    }
+
+    /* SORT */
+    if(sort === "highest"){
+        filtered.sort((a,b)=>
+            b.balance-a.balance
+        );
+    }
+
+    if(sort === "lowest"){
+        filtered.sort((a,b)=>
+            a.balance-b.balance
+        );
+    }
+
+    if(sort === "alphabetical"){
+        filtered.sort((a,b)=>
+            a.name.localeCompare(b.name)
+        );
+    }
+
+    filtered.forEach(person => {
 
         const card =
         document.createElement("div");
@@ -275,6 +312,11 @@ function render(){
                 <button
                 onclick="openTx('${person.id}','minus')">
                     Deduct
+                </button>
+
+                <button
+                onclick="openHistory('${person.id}')">
+                    Logs
                 </button>
 
                 <button
@@ -337,6 +379,7 @@ document.getElementById(
     });
 
     save();
+
     closeAll();
 };
 
@@ -429,11 +472,140 @@ document.getElementById(
     person.history.push({
         type,
         amount,
-        reason
+        reason,
+        date:new Date()
+        .toLocaleString()
     });
 
     save();
+
     closeAll();
+};
+
+/* HISTORY */
+window.openHistory = function(id){
+
+    const person =
+    peopleData.find(
+        p=>p.id===id
+    );
+
+    if(!person) return;
+
+    document.getElementById(
+        "historyTitle"
+    ).innerText =
+    `${person.name} History`;
+
+    const historyList =
+    document.getElementById(
+        "historyList"
+    );
+
+    if(person.history.length === 0){
+
+        historyList.innerHTML =
+        `<p>No transactions yet.</p>`;
+
+    } else {
+
+        historyList.innerHTML =
+        person.history
+        .slice()
+        .reverse()
+        .map(item => `
+
+            <div class="history-item ${
+                item.type === 'plus'
+                ? 'history-positive'
+                : 'history-negative'
+            }">
+
+                <div>
+                    <strong>${item.reason}</strong>
+                    <br>
+                    ${item.date}
+                </div>
+
+                <div>
+                    ${item.type === 'plus' ? '+' : '-'}
+                    $${Math.abs(item.amount).toFixed(2)}
+                </div>
+
+            </div>
+
+        `).join("");
+    }
+
+    /* GRAPH */
+    let running = 0;
+
+    const labels = [];
+    const values = [];
+
+    person.history.forEach((tx,index)=>{
+
+        if(tx.type === "plus"){
+            running += tx.amount;
+        } else {
+            running -= tx.amount;
+        }
+
+        labels.push(`#${index+1}`);
+        values.push(running);
+    });
+
+    const ctx =
+    document.getElementById(
+        "historyChart"
+    );
+
+    if(currentChart){
+        currentChart.destroy();
+    }
+
+    currentChart =
+    new Chart(ctx, {
+
+        type:"line",
+
+        data:{
+            labels,
+            datasets:[{
+                label:"Balance History",
+                data:values,
+                tension:0.3
+            }]
+        },
+
+        options:{
+            responsive:true,
+            plugins:{
+                legend:{
+                    labels:{
+                        color:"white"
+                    }
+                }
+            },
+            scales:{
+                x:{
+                    ticks:{
+                        color:"white"
+                    }
+                },
+                y:{
+                    ticks:{
+                        color:"white"
+                    }
+                }
+            }
+        }
+
+    });
+
+    document.getElementById(
+        "historyModal"
+    ).classList.add("active");
 };
 
 /* UNDO */
@@ -526,8 +698,25 @@ document.getElementById(
     delete redoStack[deleteTarget];
 
     save();
+
     closeAll();
 };
+
+/* LIVE SEARCH */
+document.getElementById(
+"searchInput"
+).addEventListener(
+"input",
+render
+);
+
+/* LIVE SORT */
+document.getElementById(
+"sortSelect"
+).addEventListener(
+"change",
+render
+);
 
 /* START */
 render();
