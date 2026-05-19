@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Credit Tracker v1.1.14</title>
+<title>Credit Tracker v1.2.0</title>
 
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -9,50 +9,43 @@
 
 <body class="blue">
 
-<div class="bg"></div>
-
-<!-- TOP BAR -->
 <div class="topbar">
 
     <h2>Credit Tracker</h2>
 
     <div class="controls">
 
-        <input id="searchInput" placeholder="Search">
+        <input id="search" placeholder="Search">
 
-        <select id="sortSelect" class="glass-btn">
-            <option value="default">Sort</option>
-            <option value="highest">Highest</option>
-            <option value="lowest">Lowest</option>
+        <select id="sort">
+            <option value="none">Sort</option>
+            <option value="high">Highest</option>
+            <option value="low">Lowest</option>
             <option value="az">A-Z</option>
         </select>
 
-        <select id="themeSelect" class="glass-btn">
+        <select id="theme">
             <option value="blue">Blue</option>
             <option value="purple">Purple</option>
             <option value="green">Green</option>
-            <option value="red">Red</option>
             <option value="midnight">Midnight</option>
         </select>
 
-        <button onclick="openLogs()">📜 Logs</button>
+        <button onclick="openLogs()">Logs</button>
         <button onclick="addPerson()">+ Add</button>
 
     </div>
 
 </div>
 
-<!-- PEOPLE -->
 <div id="people"></div>
 
-<!-- HISTORY MODAL -->
+<!-- HISTORY -->
 <div id="historyModal" class="modal">
-    <div class="modal-box scroll">
+    <div class="box scroll">
 
         <h2 id="historyTitle"></h2>
-
         <div id="historyList"></div>
-
         <canvas id="chart"></canvas>
 
         <button onclick="closeAll()">Close</button>
@@ -62,7 +55,7 @@
 
 <!-- LOGS -->
 <div id="logModal" class="modal">
-    <div class="modal-box scroll">
+    <div class="box scroll">
 
         <h2>Update Logs</h2>
         <div id="logList"></div>
