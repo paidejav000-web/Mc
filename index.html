@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Credit Tracker v1.1.11</title>
+
+<title>Credit Tracker v1.1.12</title>
+
 <link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="blue">
@@ -23,7 +27,9 @@
 
     <div class="top-controls">
 
-        <input id="searchInput" placeholder="Search users">
+        <input
+        id="searchInput"
+        placeholder="Search users">
 
         <select id="sortSelect">
             <option value="default">Sort</option>
@@ -56,6 +62,7 @@
 
 <!-- CHANGELOG -->
 <div class="modal" id="changelogModal">
+
     <div class="modal-content scrollable">
 
         <h2>Update Log</h2>
@@ -67,10 +74,12 @@
         </button>
 
     </div>
+
 </div>
 
 <!-- SETTINGS -->
 <div class="modal" id="settingsModal">
+
     <div class="modal-content">
 
         <h2>Settings</h2>
@@ -94,15 +103,19 @@
         </div>
 
     </div>
+
 </div>
 
 <!-- ADD PERSON -->
 <div class="modal" id="personModal">
+
     <div class="modal-content">
 
         <h2>Create Person</h2>
 
-        <input id="newPersonName" placeholder="Name">
+        <input
+        id="newPersonName"
+        placeholder="Name">
 
         <div class="modal-buttons">
 
@@ -117,10 +130,12 @@
         </div>
 
     </div>
+
 </div>
 
 <!-- TRANSACTION -->
 <div class="modal" id="txModal">
+
     <div class="modal-content">
 
         <h2 id="txTitle"></h2>
@@ -156,10 +171,12 @@
         </div>
 
     </div>
+
 </div>
 
 <!-- DELETE -->
 <div class="modal" id="deleteModal">
+
     <div class="modal-content">
 
         <h2>Delete Person</h2>
@@ -179,6 +196,32 @@
         </div>
 
     </div>
+
+</div>
+
+<!-- HISTORY -->
+<div class="modal" id="historyModal">
+
+    <div class="modal-content scrollable history-modal">
+
+        <h2 id="historyTitle">
+            History
+        </h2>
+
+        <div id="historyList"></div>
+
+        <canvas id="historyChart"></canvas>
+
+        <div class="modal-buttons">
+
+            <button onclick="closeAll()">
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
 </div>
 
 <script src="script.js"></script>
