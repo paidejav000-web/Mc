@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Credit Tracker v1.1.9</title>
+<title>Credit Tracker v1.1.10</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -120,6 +120,33 @@
 
             <button id="txSubmit">
                 Submit
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="modal" id="deleteModal">
+
+    <div class="modal-content">
+
+        <h2>Delete Person</h2>
+
+        <p id="deleteText">
+            Are you sure?
+        </p>
+
+        <div class="modal-buttons">
+
+            <button onclick="closeAll()">
+                Cancel
+            </button>
+
+            <button id="confirmDeleteBtn">
+                Delete
             </button>
 
         </div>
