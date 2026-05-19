@@ -1,14 +1,15 @@
-let people = JSON.parse(localStorage.getItem("p")) || [];
+let people = JSON.parse(localStorage.getItem("people")) || [];
 
-let settings = JSON.parse(localStorage.getItem("s")) || {
-    theme:"blue"
+let settings = JSON.parse(localStorage.getItem("settings")) || {
+    theme:"blue",
+    admin:"1234"
 };
 
 let undo = {};
 let redo = {};
 let chart;
 
-/* THEME */
+/* APPLY THEME (GLOBAL FIX) */
 function applyTheme(){
     document.body.className = settings.theme;
 }
@@ -16,7 +17,7 @@ applyTheme();
 
 /* SAVE */
 function save(){
-    localStorage.setItem("p",JSON.stringify(people));
+    localStorage.setItem("people",JSON.stringify(people));
     render();
 }
 
@@ -26,7 +27,9 @@ function render(){
     const box = document.getElementById("people");
     box.innerHTML = "";
 
-    people.forEach(p=>{
+    let list = [...people];
+
+    list.forEach(p=>{
 
         const div = document.createElement("div");
         div.className = "card";
@@ -54,9 +57,9 @@ function render(){
     });
 }
 
-/* ADD */
+/* ADD PERSON */
 function addPerson(){
-    let name = prompt("Name:");
+    const name = prompt("Name:");
     if(!name) return;
 
     people.push({
@@ -72,13 +75,13 @@ function addPerson(){
 /* TX */
 function tx(id,type){
 
-    let amt = parseFloat(prompt("Amount"));
-    let reason = prompt("Reason");
-    let pass = prompt("Password");
+    const amt = parseFloat(prompt("Amount"));
+    const reason = prompt("Reason");
+    const pass = prompt("Password");
 
-    if(!amt || pass !== "1234") return;
+    if(pass !== settings.admin || !amt) return;
 
-    let p = people.find(x=>x.id===id);
+    const p = people.find(x=>x.id===id);
 
     undo[id] = undo[id] || [];
     redo[id] = [];
@@ -88,15 +91,16 @@ function tx(id,type){
     p.balance += type * amt;
 
     p.history.push({
-        type,amt,reason,date:new Date()
+        type,amt,reason,
+        date:new Date().toLocaleString()
     });
 
     save();
 }
 
-/* UNDO/REDO */
+/* UNDO */
 function undoTx(id){
-    let p = people.find(x=>x.id===id);
+    const p = people.find(x=>x.id===id);
     if(!undo[id]?.length) return;
 
     redo[id].push(p.balance);
@@ -104,8 +108,9 @@ function undoTx(id){
     save();
 }
 
+/* REDO */
 function redoTx(id){
-    let p = people.find(x=>x.id===id);
+    const p = people.find(x=>x.id===id);
     if(!redo[id]?.length) return;
 
     undo[id].push(p.balance);
@@ -116,15 +121,16 @@ function redoTx(id){
 /* HISTORY */
 function openHistory(id){
 
-    let p = people.find(x=>x.id===id);
+    const p = people.find(x=>x.id===id);
 
     document.getElementById("historyModal").classList.add("active");
-
     document.getElementById("historyTitle").innerText = p.name;
 
     document.getElementById("historyList").innerHTML =
     p.history.map(h=>`
-        <div>${h.reason} $${h.amt}</div>
+        <div>
+            ${h.reason} — $${h.amt}
+        </div>
     `).join("");
 
     let labels=[],data=[],b=0;
@@ -143,14 +149,14 @@ function openHistory(id){
     });
 }
 
-/* LOGS (FULL HISTORY FROM START) */
+/* LOGS (FULL HISTORY FROM START FIXED) */
 function openLogs(){
 
     const logs = [
-        "v1.0 - Initial system",
-        "v1.1 - Themes added",
-        "v1.2 - Graph system",
-        "v1.2.0 - UI rebuild + fix system"
+        "v1.0 - initial build",
+        "v1.1 - theme system",
+        "v1.2 - graph system",
+        "v1.2.1 - UI stabilization + fixes"
     ];
 
     document.getElementById("logModal").classList.add("active");
